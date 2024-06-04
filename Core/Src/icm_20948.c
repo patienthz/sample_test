@@ -103,8 +103,9 @@ uint8_t spi1_read_reg(uint8_t reg_addr)
 uint8_t spi1_read_reg_buffer(uint8_t reg_addr,void *buffer,uint16_t len)
 {
 	uint8_t addr_data=reg_addr|0x80;
-	HAL_SPI_Transmit(&hspi4,&(addr_data),1,1);
-	HAL_SPI_Receive(&hspi4,buffer,len,100);
+	HAL_SPI_Transmit(&hspi4,&(addr_data),1,10);
+	HAL_SPI_Receive(&hspi4,buffer,len,10);
+//	HAL_SPI_TransmitReceive(&hspi4,&addr_data,buffer,len,100);
 	return 0;
 }
 
@@ -369,9 +370,9 @@ void GPIO_AF_Set(GPIO_TypeDef* GPIOx,u8 BITx,u8 AFx)
 
 void IMU_GetRawData( int16_t raw_data[] ) 
 {
-	uint8_t buff[23] = {0};
+	uint8_t buff[21] = {0};
 
-  ICM94_ReadRegs(ICM20948_ACCEL_XOUT_H, buff, 23);  /* Acc, Gyr, Mag, Temp */
+  ICM94_ReadRegs(ICM20948_ACCEL_XOUT_H, buff, 21);  /* Acc, Gyr, Mag, Temp */
   //raw_data[0] = (int16_t)(buff[12] << 8) | buff[13];   /* ICTemp */
   raw_data[1] =  (int16_t)((buff[6]   << 8) | buff[7]);    /* Gyr.X */
   raw_data[2] =  (int16_t)((buff[8]   << 8) | buff[9]);    /* Gyr.Y */

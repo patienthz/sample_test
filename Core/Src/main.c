@@ -52,14 +52,17 @@
 /* USER CODE BEGIN PV */
 float ad9226_buffer_float[ad9226_bufer_size];
 uint16_t ad9226_bufffer[ad9226_bufer_size];
+uint8_t up_ad9226_bufffer[ad9226_bufer_size];
+uint8_t down_ad9226_bufffer[ad9226_bufer_size];
+
 uint16_t cnt=1;
-uint8_t data=100;
+uint8_t data=0;
 uint8_t rx=0;
-uint16_t cnt_buffer[]={0x0000,0x4701,0x9401,0xe201};//0x0000,0x3f00,0x7f00,0xbf00,0xff00
+uint16_t cnt_buffer[]={0x0A00,0x4B01,0x9101,0xDA01};//0x0000,0x4701,0x9401,0xe201
 uint16_t temp=0;//0-4
 uint16_t spi_data;
 uint16_t adc_count=0;
-int16_t icm_readdata[23];
+int16_t icm_readdata[21];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -110,13 +113,15 @@ int main(void)
   MX_TIM4_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-//TIM4->PSC=5-1;
-//TIM4->ARR=2-1;
-//TIM4->CCR2=1;
-//		HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_2);
-//    HAL_TIM_Base_Start_IT(&htim4);
-//	HAL_SPI_Transmit(&hspi3,&data,1,10);
-	 ICM20948_init();
+TIM4->PSC=200-1;
+TIM4->ARR=20-1;
+TIM4->CCR2=10;
+		HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_2);
+    HAL_TIM_Base_Start_IT(&htim4);
+	HAL_GPIO_WritePin(GPIOI,GPIO_PIN_11,GPIO_PIN_SET);	
+	HAL_SPI_Transmit(&hspi3,&data,1,10);
+	HAL_GPIO_WritePin(GPIOI,GPIO_PIN_11,GPIO_PIN_RESET);
+//	 ICM20948_init();
 	
   
   /* USER CODE END 2 */
@@ -125,19 +130,27 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//		if(adc_count==0)
-//		{
 
-//			printf("*****************************************************************");
-//			for(uint16_t i=0;i<ad9226_bufer_size;i++)
-//		{
-////			ad9226_buffer_float[i] =  ad9226_bufffer[i]*1.0/4095.0*10-5;
-//			printf("a=%.3f\r\n",ad9226_buffer_float[i]);
-//		}
-//		printf("*****************************************************************");
-////		while(1);
-//		}
-////		icm_20948_readdata(icm_readdata);
+		if(adc_count==0)
+		{
+
+//			printf("*****");
+			for(uint16_t i=0;i<ad9226_bufer_size;i++)
+		{
+//			ad9226_buffer_float[i] =  ad9226_bufffer[i]*1.0/4095.0*10-5;
+	//		printf("a=%.3f\r\n",ad9226_buffer_float[i]);
+			
+			
+			up_ad9226_bufffer[i]=(ad9226_bufffer[i]&0Xff00)>>8;
+			down_ad9226_bufffer[i]=(ad9226_bufffer[i]&0X00ff);
+			printf("%c%c",up_ad9226_bufffer[i],down_ad9226_bufffer[i]);
+			
+			
+		}
+		printf("***");
+//		while(1);
+		}
+//		icm_20948_readdata(icm_readdata);
 //		printf("*****************************************************************");
 //		for(uint16_t i=0;i<23;i++)
 //		{
@@ -145,9 +158,9 @@ int main(void)
 //		}
 //		printf("*****************************************************************");
 		
-		IMU_GetRawData(icm_readdata); 
-		for(uint16_t i=0;i<21;i++)
-		{printf("a=%d\r\n",icm_readdata[i]);}
+//		IMU_GetRawData(icm_readdata); 
+//		for(uint16_t i=0;i<21;i++)
+//		{printf("a=%d\r\n",icm_readdata[i]);}
 	
     /* USER CODE END WHILE */
 
@@ -220,32 +233,32 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-//{
-//	
-//    if (htim == (&htim4))
-//    {
-////			HAL_SPI_Transmit(&hspi1,&cnt,1,1);
-//			spi_data=cnt|cnt_buffer[temp];
-//			mySPI_Master_ReadWriteByte(spi_data);
-////			printf("a=%x\r\n",spi_data);
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	
+    if (htim == (&htim4))
+    {
+//			HAL_SPI_Transmit(&hspi1,&cnt,1,1);
+			spi_data=cnt|cnt_buffer[temp];
+			mySPI_Master_ReadWriteByte(spi_data);
+//			printf("a=%x\r\n",spi_data);
 
-//				ad9226_bufffer[adc_count]=AD9226ReadData();
+				ad9226_bufffer[adc_count]=AD9226ReadData();
 //			ad9226_buffer_float[adc_count] =  ad9226_bufffer[adc_count]*1.0/4095.0*10-5;
-//			cnt++;
-//			adc_count++;
-//				if(cnt==256) {cnt=1;
-//					if(temp==3){temp=0;}
-//					else {temp++;}
-////					HAL_TIM_Base_Stop_IT(&htim4);
-////			  HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_2);
-//					}
-//				if(adc_count==1024) {adc_count=0;}
-//			
-//				
-//				
-//    }
-//}
+			cnt++;
+			adc_count++;
+				if(cnt==256) {cnt=1;
+					if(temp==3){temp=0;}
+					else {temp++;}
+//					HAL_TIM_Base_Stop_IT(&htim4);
+//			  HAL_TIM_PWM_Stop(&htim4,TIM_CHANNEL_2);
+					}
+				if(adc_count==1024) {adc_count=0;}
+			
+				
+				
+    }
+}
 
 //void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 //{
